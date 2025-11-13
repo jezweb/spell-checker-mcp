@@ -81,7 +81,14 @@ export async function handleCorrectTool(
       if (!ai) {
         throw new Error('AI binding required for grammar correction');
       }
-      const grammarCheckResult = await checkGrammar(args.text, ai, language);
+      // Get spelling errors for context even in grammar-only mode
+      const spellCheckResult = await checkSpelling(args.text, language);
+      const grammarCheckResult = await checkGrammar(
+        args.text,
+        ai,
+        language,
+        spellCheckResult.errors // Pass spelling context
+      );
       result = applyGrammarCorrections(
         args.text,
         grammarCheckResult,
@@ -103,10 +110,12 @@ export async function handleCorrectTool(
 
       // Then, check grammar on the spelling-corrected text
       // This ensures grammar errors don't overlap with spelling corrections
+      // Pass spelling errors as context (using original errors, not from corrected text)
       const grammarCheckResult = await checkGrammar(
         spellingCorrected.correctedText,
         ai,
-        language
+        language,
+        spellCheckResult.errors // Pass original spelling errors as context
       );
 
       const grammarCorrected = applyGrammarCorrections(

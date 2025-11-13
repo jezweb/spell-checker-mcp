@@ -1,4 +1,5 @@
 import type { LanguageCode } from './dictionary';
+import type { SpellingError } from './spellcheck';
 
 export interface GrammarError {
   message: string;
@@ -22,7 +23,7 @@ export interface GrammarCheckResult {
  * System prompt for Australian English grammar checking
  * Focuses on AU English conventions and common grammar issues
  */
-const AU_GRAMMAR_SYSTEM_PROMPT = `You are an expert Australian English grammar checker and style advisor. Your role is to identify grammar, punctuation, and style issues in text while respecting Australian English conventions.
+const AU_GRAMMAR_BASE_PROMPT = `You are an expert Australian English grammar checker and style advisor. Your role is to identify grammar, punctuation, and style issues in text while respecting Australian English conventions.
 
 AUSTRALIAN ENGLISH CONVENTIONS:
 - Spelling: colour, honour, organise, realise, centre, theatre
@@ -74,23 +75,50 @@ IMPORTANT:
 - If the text is grammatically correct, return []`;
 
 /**
- * Check grammar using Workers AI
- * Uses Llama 3.1 8B for fast, accurate grammar checking
+ * Build system prompt with optional spelling context
+ * If spelling errors provided, inject them into prompt so AI knows what will be fixed
+ */
+function buildSystemPrompt(spellingErrors?: SpellingError[]): string {
+  let prompt = AU_GRAMMAR_BASE_PROMPT;
+
+  if (spellingErrors && spellingErrors.length > 0) {
+    prompt += `\n\nSPELLING ERRORS (will be corrected separately - do NOT flag these):\n`;
+    spellingErrors.forEach((err) => {
+      const suggestions = err.suggestions.slice(0, 3).join(', ');
+      prompt += `- "${err.word}" at position ${err.position} → suggestions: ${suggestions}\n`;
+    });
+    prompt += `\nFocus ONLY on grammar, punctuation, and style issues. Ignore the spelling errors listed above.`;
+  }
+
+  return prompt;
+}
+
+/**
+ * Check grammar using Workers AI with DeepSeek R1
+ * Supports spelling context for improved accuracy
+ *
+ * @param text - Text to check
+ * @param ai - Cloudflare AI binding
+ * @param language - Language code (default: en-AU)
+ * @param spellingErrors - Optional spelling errors to provide as context
  */
 export async function checkGrammar(
   text: string,
   ai: Ai,
-  language: LanguageCode = 'en-AU'
+  language: LanguageCode = 'en-AU',
+  spellingErrors?: SpellingError[]
 ): Promise<GrammarCheckResult> {
-  // Use Llama 3.3 70B - Much larger model (70B vs 8B) for better accuracy
-  const modelId = '@cf/meta/llama-3.3-70b-instruct-fp8-fast';
+  const modelId = '@cf/deepseek-ai/deepseek-r1-distill-qwen-32b';
+
+  // Build system prompt with spelling context if provided
+  const systemPrompt = buildSystemPrompt(spellingErrors);
 
   try {
     const response = (await ai.run(modelId as any, {
       messages: [
         {
           role: 'system',
-          content: AU_GRAMMAR_SYSTEM_PROMPT,
+          content: systemPrompt,
         },
         {
           role: 'user',

@@ -1,11 +1,12 @@
 import { Tool, CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { checkGrammar } from '../lib/grammar';
+import { checkSpelling } from '../lib/spellcheck';
 import { isLanguageSupported, type LanguageCode } from '../lib/dictionary';
 
 export const grammarToolDefinition: Tool = {
   name: 'spell_check_grammar',
   description:
-    'Check text for grammar, punctuation, and style issues using AI (Workers AI Llama 3.1). Respects Australian English conventions. Returns detailed errors with suggestions and context. Slower than spell check but catches grammar issues.',
+    'Check text for grammar, punctuation, and style issues using AI (DeepSeek R1 32B). Respects Australian English conventions. Returns detailed errors with suggestions and context. Automatically detects spelling errors first to provide context to AI for more accurate grammar checking.',
   inputSchema: {
     type: 'object',
     properties: {
@@ -44,15 +45,36 @@ export async function handleGrammarTool(
     );
   }
 
-  // Run grammar check
-  const result = await checkGrammar(args.text, ai, language);
+  // First, run spell check to get spelling errors for context
+  const spellCheckResult = await checkSpelling(args.text, language);
+
+  // Run grammar check with spelling context
+  const result = await checkGrammar(
+    args.text,
+    ai,
+    language,
+    spellCheckResult.errors // Pass spelling errors as context
+  );
 
   // Format result for MCP
   const summary = `Grammar check complete. Found ${result.errorCount} issue${result.errorCount === 1 ? '' : 's'}.`;
 
   let detailsText = '';
+
+  // Show spelling context if any
+  if (spellCheckResult.errors.length > 0) {
+    detailsText += `\n\nSpelling errors detected (provided as context to AI):\n`;
+    spellCheckResult.errors.slice(0, 5).forEach((err) => {
+      const suggestions = err.suggestions.slice(0, 3).join(', ');
+      detailsText += `- "${err.word}" → ${suggestions}\n`;
+    });
+    if (spellCheckResult.errors.length > 5) {
+      detailsText += `... and ${spellCheckResult.errors.length - 5} more\n`;
+    }
+  }
+
   if (result.errors.length > 0) {
-    detailsText = '\n\nIssues:\n';
+    detailsText += '\n\nGrammar/Style issues:\n';
     result.errors.forEach((error, index) => {
       const suggestionsText =
         error.suggestions.length > 0
@@ -65,7 +87,7 @@ export async function handleGrammarTool(
       detailsText += `   Rule: ${error.ruleId}\n\n`;
     });
   } else {
-    detailsText = '\n\nNo grammar issues found! ✓';
+    detailsText += '\n\nNo grammar issues found! ✓';
   }
 
   detailsText += `\nModel: ${result.aiModel}`;

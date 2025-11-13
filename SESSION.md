@@ -2,7 +2,7 @@
 
 **Current Phase**: Phase 4 Complete
 **Current Stage**: Ready for Phase 5
-**Last Checkpoint**: 41ecb22 (2025-11-13)
+**Last Checkpoint**: f103a88 (2025-11-13)
 **Planning Docs**: README.md (contains project specification)
 
 ---
@@ -98,7 +98,7 @@
 
 ## Phase 4: Auto-Correct Tool ✅
 
-**Completed**: 2025-11-13 | **Checkpoint**: (pending commit)
+**Completed**: 2025-11-13 | **Checkpoint**: f103a88
 
 **Summary**: Implemented spell_check_correct MCP tool with three correction modes (spelling, grammar, both). Added correction library with position tracking and conflict detection. Upgraded grammar model to Llama 3.3 70B for better accuracy.
 
@@ -130,6 +130,40 @@
 
 ---
 
+## Phase 4.5: Spelling Context Integration ✅
+
+**Completed**: 2025-11-13 | **Checkpoint**: (pending)
+
+**Summary**: Enhanced grammar checking with spelling context integration and upgraded to DeepSeek R1 32B. Grammar checker now automatically receives spelling errors as context, preventing duplicate error flagging and improving AI accuracy.
+
+**Deliverables**:
+- Spelling context injection system in `checkGrammar()`
+- `buildSystemPrompt()` function to inject spelling errors into AI prompt
+- Auto spell-check in `spell_check_grammar` tool (runs before grammar check)
+- Updated all grammar checking calls to pass spelling context
+- Switched from Llama 3.3 70B to DeepSeek R1 Distill Qwen 32B (reasoning model)
+
+**Verified**:
+- ✅ DeepSeek R1 detects grammar errors accurately
+- ✅ Spelling context prevents duplicate flagging
+- ✅ "dont" flagged as spelling (context) + grammar errors detected separately
+- ✅ AU English preserved (colours, organise)
+- ✅ Token efficiency improved (AI doesn't analyze spelling errors)
+- ✅ TypeScript builds cleanly
+
+**Key Innovation**:
+System prompt now includes spelling errors with format:
+```
+SPELLING ERRORS (will be corrected separately - do NOT flag these):
+- "recieve" at position 2 → suggestions: receive, relieve
+
+Focus ONLY on grammar, punctuation, and style issues.
+```
+
+This prevents AI from wasting tokens on spelling and improves grammar detection accuracy.
+
+---
+
 ## Phase 5: Storage & Large Documents (Not Started) ⏸️
 
 **Spec**: R2 integration for handling documents > 100KB
@@ -149,10 +183,11 @@
 
 **What Works**:
 - Spell check analysis with AU English dictionary
-- Grammar checking with Workers AI (Llama 3.3 70B)
+- Grammar checking with Workers AI (DeepSeek R1 32B with spelling context)
 - Auto-correction with 3 modes (spelling/grammar/both)
 - Accurate position tracking (line/column)
 - Suggestion generation
+- Spelling context integration (prevents duplicate error flagging)
 - HTTP JSON-RPC MCP transport
 - Dev server runs cleanly
 - TypeScript builds without errors
@@ -167,11 +202,11 @@
 - `src/mcp/tools.ts` - Tool definitions (3 tools)
 - `src/lib/dictionary.ts` - Dictionary loader
 - `src/lib/spellcheck.ts` - nspell wrapper
-- `src/lib/grammar.ts` - Workers AI grammar checking (Llama 3.3 70B)
+- `src/lib/grammar.ts` - Workers AI grammar checking (DeepSeek R1 32B + spelling context)
 - `src/lib/correction.ts` - Correction application logic
 - `src/tools/analyze.ts` - spell_check_analyze tool
-- `src/tools/grammar.ts` - spell_check_grammar tool
-- `src/tools/correct.ts` - spell_check_correct tool
+- `src/tools/grammar.ts` - spell_check_grammar tool (with auto spell-check)
+- `src/tools/correct.ts` - spell_check_correct tool (passes spelling context)
 - `wrangler.jsonc` - Cloudflare bindings configuration
 - `worker-configuration.d.ts` - Generated types (AI, R2, Analytics)
 
