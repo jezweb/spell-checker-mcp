@@ -79,9 +79,9 @@ Connect this MCP server to your favorite AI coding assistant.
 
 ### Via CLI (Recommended)
 
-**Use HTTP transport (deployed server):**
+**Use HTTP transport (public server):**
 ```bash
-claude mcp add spell-checker --transport http https://your-worker.workers.dev/mcp
+claude mcp add spell-checker --transport http https://spellcheck.mcp.jezweb.ai/mcp
 ```
 
 **Or use NPX (local):**
@@ -98,7 +98,7 @@ Add to `~/.claude/mcp.json` (user-level) or `.mcp.json` (project-level):
 {
   "mcpServers": {
     "spell-checker": {
-      "url": "https://your-worker.workers.dev/mcp",
+      "url": "https://spellcheck.mcp.jezweb.ai/mcp",
       "transport": "http"
     }
   }
@@ -134,12 +134,12 @@ claude mcp get spell-checker
 3. Click "Add Server"
 4. Choose configuration:
 
-**HTTP Transport (Deployed Server):**
+**HTTP Transport (Public Server):**
 ```json
 {
   "mcpServers": {
     "spell-checker": {
-      "url": "https://your-worker.workers.dev/mcp",
+      "url": "https://spellcheck.mcp.jezweb.ai/mcp",
       "transport": "http"
     }
   }
@@ -172,7 +172,7 @@ Add to `~/Library/Application Support/Code/User/globalStorage/rooveterinaryinc.r
 {
   "mcpServers": {
     "spell-checker": {
-      "url": "https://your-worker.workers.dev/mcp",
+      "url": "https://spellcheck.mcp.jezweb.ai/mcp",
       "transport": "http"
     }
   }
@@ -206,7 +206,7 @@ Create `.roo/mcp.json` in your project root:
 {
   "mcpServers": {
     "spell-checker": {
-      "url": "https://your-worker.workers.dev/mcp",
+      "url": "https://spellcheck.mcp.jezweb.ai/mcp",
       "transport": "http"
     }
   }
@@ -240,7 +240,7 @@ Add to `~/.config/zed/settings.json`:
   "context_servers": {
     "spell-checker": {
       "settings": {
-        "url": "https://your-worker.workers.dev/mcp",
+        "url": "https://spellcheck.mcp.jezweb.ai/mcp",
         "transport": "http"
       }
     }
@@ -262,7 +262,7 @@ Most MCP clients support the standard configuration format:
 {
   "mcpServers": {
     "spell-checker": {
-      "url": "https://your-worker.workers.dev/mcp",
+      "url": "https://spellcheck.mcp.jezweb.ai/mcp",
       "transport": "http"
     }
   }
@@ -595,7 +595,7 @@ If deploying manually:
 
 **Check server status:**
 ```bash
-curl https://your-worker.workers.dev/health
+curl https://spellcheck.mcp.jezweb.ai/health
 ```
 
 **Verify client configuration:**
