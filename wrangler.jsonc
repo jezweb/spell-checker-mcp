@@ -1,0 +1,27 @@
+{
+  "name": "spell-checker-mcp-api",
+  "main": "src/index.ts",
+  "account_id": "0460574641fdbb98159c98ebf593e2bd",
+  "compatibility_date": "2025-11-11",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": {
+    "enabled": true
+  },
+  "analytics_engine_datasets": [
+    {
+      "binding": "MCP_METRICS"
+    }
+  ],
+  // R2 bucket for large document storage
+  "r2_buckets": [
+    {
+      "binding": "SPELL_CHECK_DOCS",
+      "bucket_name": "spell-checker-documents",
+      "preview_bucket_name": "spell-checker-documents-preview"
+    }
+  ],
+  // Workers AI binding for grammar checking
+  "ai": {
+    "binding": "AI"
+  }
+}

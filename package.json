@@ -1,0 +1,37 @@
+{
+  "name": "spell-checker-mcp-api",
+  "version": "1.0.0",
+  "description": "MCP server for Australian English spell checking with AI grammar support",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "build": "tsc",
+    "deploy": "wrangler deploy",
+    "cf-typegen": "wrangler types",
+    "test": "vitest",
+    "start": "wrangler dev"
+  },
+  "keywords": [
+    "mcp",
+    "spell-checker",
+    "australian-english",
+    "cloudflare-workers"
+  ],
+  "author": "Jezweb <jeremy@jezweb.net>",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.21.1",
+    "dictionary-en-au": "^3.0.0",
+    "hono": "^4.10.5",
+    "nspell": "^2.1.5",
+    "wrangler": "^4.47.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20251111.0",
+    "@types/node": "^24.10.1",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.8"
+  }
+}
