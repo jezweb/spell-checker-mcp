@@ -401,7 +401,29 @@ app.get('/', (c) => {
   return c.html(html);
 });
 
-// MCP endpoint (POST only for JSON-RPC requests)
+// MCP endpoint - GET returns info, POST handles JSON-RPC
+app.get('/mcp', (c) => {
+  return c.json({
+    name: 'spell-checker-mcp',
+    version: '1.1.0',
+    description: 'MCP server for multi-language spell and grammar checking',
+    transport: 'http',
+    protocol: 'json-rpc',
+    note: 'This server uses HTTP transport (POST only). Send JSON-RPC requests via POST.',
+    usage: {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      example: {
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'tools/list',
+      },
+    },
+  });
+});
+
 app.post('/mcp', async (c) => {
   try {
     const body = await c.req.json() as MCPRequest;
