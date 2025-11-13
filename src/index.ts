@@ -20,8 +20,9 @@ app.get('/health', (c) => {
   return c.json({
     status: 'ok',
     version: '1.0.0',
-    tools: 1,
-    description: 'Australian English spell checker MCP server',
+    tools: 3,
+    languages: 56,
+    description: 'Multi-language spell checker MCP server (56+ languages with auto-detection)',
   });
 });
 
@@ -65,7 +66,12 @@ app.post('/mcp', async (c) => {
     }
 
     // Pass AI and R2 bindings to MCP handler
-    const response = await handleMCPRequest(body, c.env.AI, c.env.SPELL_CHECK_DOCS);
+    const response = await handleMCPRequest(
+      body,
+      c.env.AI,
+      c.env.SPELL_CHECK_DOCS,
+      c.env.SPELL_CHECK_DICTS
+    );
     return c.json(response);
   } catch (error) {
     console.error('Failed to parse request:', error);

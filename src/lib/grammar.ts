@@ -105,7 +105,7 @@ function buildSystemPrompt(spellingErrors?: SpellingError[]): string {
 export async function checkGrammar(
   text: string,
   ai: Ai,
-  language: LanguageCode = 'en-AU',
+  language: LanguageCode = 'en-au',
   spellingErrors?: SpellingError[]
 ): Promise<GrammarCheckResult> {
   const modelId = '@cf/deepseek-ai/deepseek-r1-distill-qwen-32b';

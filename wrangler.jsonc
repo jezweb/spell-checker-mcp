@@ -12,12 +12,17 @@
       "binding": "MCP_METRICS"
     }
   ],
-  // R2 bucket for large document storage
+  // R2 buckets for document storage and dictionaries
   "r2_buckets": [
     {
       "binding": "SPELL_CHECK_DOCS",
       "bucket_name": "spell-checker-documents",
       "preview_bucket_name": "spell-checker-documents-preview"
+    },
+    {
+      "binding": "SPELL_CHECK_DICTS",
+      "bucket_name": "spell-checker-dictionaries",
+      "preview_bucket_name": "spell-checker-dictionaries-preview"
     }
   ],
   // Workers AI binding for grammar checking

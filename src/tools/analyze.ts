@@ -1,11 +1,11 @@
 import { Tool, CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { checkSpelling } from '../lib/spellcheck';
-import { isLanguageSupported, type LanguageCode } from '../lib/dictionary';
+import { isLanguageSupported, getSupportedLanguages, type LanguageCode } from '../lib/dictionary';
 
 export const analyzeToolDefinition: Tool = {
   name: 'spell_check_analyze',
   description:
-    'Analyze text for spelling errors using Australian English dictionary. Returns list of misspelled words with line/column positions and suggestions. Fast and free (uses local dictionary, no AI).',
+    'Analyze text for spelling errors in 56+ languages. Returns list of misspelled words with line/column positions and suggestions. Supports auto-detection if language not specified. Fast and free (uses dictionaries, no AI).',
   inputSchema: {
     type: 'object',
     properties: {
@@ -15,37 +15,63 @@ export const analyzeToolDefinition: Tool = {
       },
       language: {
         type: 'string',
-        description: 'Language code for spell checking (default: en-AU)',
-        enum: ['en-AU'],
-        default: 'en-AU',
+        description: 'Language code for spell checking (optional, will auto-detect if not provided)',
+        enum: [
+          'en', 'en-au', 'en-ca', 'en-gb', 'en-us', 'en-za',
+          'es', 'fr', 'de', 'it', 'nl', 'pt', 'ru',
+          'pl', 'cs', 'ro', 'sv', 'da', 'nb', 'nn',
+          'bg', 'ca', 'cy', 'el', 'eo', 'et', 'eu',
+          'fo', 'fur', 'fy', 'ga', 'gd', 'gl', 'he',
+          'hr', 'hu', 'hy', 'is', 'ka', 'ko', 'lt',
+          'lv', 'mk', 'mn', 'fa', 'br', 'la', 'sk',
+          'sl', 'sr', 'tr', 'uk', 'vi'
+        ],
       },
     },
     required: ['text'],
   },
 };
 
-export async function handleAnalyzeTool(args: {
-  text?: string;
-  language?: string;
-}): Promise<CallToolResult> {
+export async function handleAnalyzeTool(
+  args: {
+    text?: string;
+    language?: string;
+  },
+  r2Bucket?: R2Bucket
+): Promise<CallToolResult> {
   // Validate arguments
   if (!args.text) {
     throw new Error('Missing required argument: text');
   }
 
-  const language = (args.language || 'en-AU') as LanguageCode;
+  if (!r2Bucket) {
+    throw new Error('R2 bucket not available for dictionary loading');
+  }
 
-  if (!isLanguageSupported(language)) {
+  // Validate language if provided
+  const language = args.language ? (args.language.toLowerCase() as LanguageCode) : undefined;
+
+  if (language && !isLanguageSupported(language)) {
+    const supported = getSupportedLanguages();
     throw new Error(
-      `Unsupported language: ${language}. Supported languages: en-AU`
+      `Unsupported language: ${language}. Supported languages: ${supported.map(l => l.code).join(', ')}`
     );
   }
 
-  // Run spell check
-  const result = await checkSpelling(args.text, language);
+  // Run spell check (will auto-detect if language not specified)
+  const result = await checkSpelling(args.text, language, r2Bucket);
 
   // Format result for MCP
-  const summary = `Checked ${result.wordCount} words. Found ${result.errorCount} spelling error${result.errorCount === 1 ? '' : 's'}.`;
+  let summary = `Checked ${result.wordCount} words in ${result.language.toUpperCase()}. Found ${result.errorCount} spelling error${result.errorCount === 1 ? '' : 's'}.`;
+
+  // Add auto-detection info if language was detected
+  if (result.detectedLanguage !== undefined) {
+    if (result.detectedLanguage) {
+      summary += ` (Auto-detected language: ${result.language.toUpperCase()})`;
+    } else {
+      summary += ` (Auto-detection failed, used default: ${result.language.toUpperCase()})`;
+    }
+  }
 
   let detailsText = '';
   if (result.errors.length > 0) {

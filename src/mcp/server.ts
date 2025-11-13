@@ -13,7 +13,8 @@ import { handleCorrectTool } from '../tools/correct';
 export async function handleMCPRequest(
   request: MCPRequest,
   ai?: Ai,
-  r2Bucket?: R2Bucket
+  r2Bucket?: R2Bucket,
+  r2DictsBucket?: R2Bucket
 ): Promise<MCPResponse> {
   const { id, method, params } = request;
 
@@ -56,7 +57,7 @@ export async function handleMCPRequest(
 
           switch (toolName) {
             case 'spell_check_analyze':
-              toolResult = await handleAnalyzeTool(args);
+              toolResult = await handleAnalyzeTool(args, r2DictsBucket);
               break;
 
             case 'spell_check_grammar':
@@ -66,12 +67,12 @@ export async function handleMCPRequest(
                   'AI binding not available for grammar checking'
                 );
               }
-              toolResult = await handleGrammarTool(args, ai);
+              toolResult = await handleGrammarTool(args, ai, r2DictsBucket);
               break;
 
             case 'spell_check_correct':
               // Correction tool can work without AI (spelling-only mode)
-              toolResult = await handleCorrectTool(args, ai, r2Bucket);
+              toolResult = await handleCorrectTool(args, ai, r2Bucket, r2DictsBucket);
               break;
 
             default:

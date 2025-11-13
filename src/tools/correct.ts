@@ -23,9 +23,18 @@ export const correctToolDefinition: Tool = {
       },
       language: {
         type: 'string',
-        description: 'Language code for correction (default: en-AU)',
-        enum: ['en-AU'],
-        default: 'en-AU',
+        description: 'Language code for correction (default: en-au)',
+        enum: [
+          'en', 'en-au', 'en-ca', 'en-gb', 'en-us', 'en-za',
+          'es', 'fr', 'de', 'it', 'nl', 'pt', 'ru',
+          'pl', 'cs', 'ro', 'sv', 'da', 'nb', 'nn',
+          'bg', 'ca', 'cy', 'el', 'eo', 'et', 'eu',
+          'fo', 'fur', 'fy', 'ga', 'gd', 'gl', 'he',
+          'hr', 'hu', 'hy', 'is', 'ka', 'ko', 'lt',
+          'lv', 'mk', 'mn', 'fa', 'br', 'la', 'sk',
+          'sl', 'sr', 'tr', 'uk', 'vi'
+        ],
+        default: 'en-au',
       },
       mode: {
         type: 'string',
@@ -46,20 +55,26 @@ export async function handleCorrectTool(
     mode?: 'spelling' | 'grammar' | 'both';
   },
   ai?: Ai,
-  r2Bucket?: R2Bucket
+  r2Bucket?: R2Bucket,
+  r2DictsBucket?: R2Bucket
 ): Promise<CallToolResult> {
   // Validate arguments
   if (!args.text) {
     throw new Error('Missing required argument: text');
   }
 
-  const language = (args.language || 'en-AU') as LanguageCode;
+  const language = (args.language || 'en-au') as LanguageCode;
   const mode = args.mode || 'both';
 
   if (!isLanguageSupported(language)) {
     throw new Error(
-      `Unsupported language: ${language}. Supported languages: en-AU`
+      `Unsupported language: ${language}. Supported languages: en-au`
     );
+  }
+
+  // Ensure r2DictsBucket is available for spelling checks
+  if (!r2DictsBucket) {
+    throw new Error('R2 dictionaries bucket not available');
   }
 
   // If grammar mode is requested, ensure AI binding is available
@@ -77,7 +92,7 @@ export async function handleCorrectTool(
   try {
     if (mode === 'spelling') {
       // Spelling-only mode
-      const spellCheckResult = await checkSpelling(args.text, language);
+      const spellCheckResult = await checkSpelling(args.text, language, r2DictsBucket);
       result = applySpellingCorrections(args.text, spellCheckResult, options);
     } else if (mode === 'grammar') {
       // Grammar-only mode
@@ -85,7 +100,7 @@ export async function handleCorrectTool(
         throw new Error('AI binding required for grammar correction');
       }
       // Get spelling errors for context even in grammar-only mode
-      const spellCheckResult = await checkSpelling(args.text, language);
+      const spellCheckResult = await checkSpelling(args.text, language, r2DictsBucket);
       const grammarCheckResult = await checkGrammar(
         args.text,
         ai,
@@ -104,7 +119,7 @@ export async function handleCorrectTool(
       }
 
       // First, check and apply spelling corrections
-      const spellCheckResult = await checkSpelling(args.text, language);
+      const spellCheckResult = await checkSpelling(args.text, language, r2DictsBucket);
       const spellingCorrected = applySpellingCorrections(
         args.text,
         spellCheckResult,

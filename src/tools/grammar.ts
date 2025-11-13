@@ -16,9 +16,18 @@ export const grammarToolDefinition: Tool = {
       },
       language: {
         type: 'string',
-        description: 'Language code for grammar checking (default: en-AU)',
-        enum: ['en-AU'],
-        default: 'en-AU',
+        description: 'Language code for grammar checking (default: en-au)',
+        enum: [
+          'en', 'en-au', 'en-ca', 'en-gb', 'en-us', 'en-za',
+          'es', 'fr', 'de', 'it', 'nl', 'pt', 'ru',
+          'pl', 'cs', 'ro', 'sv', 'da', 'nb', 'nn',
+          'bg', 'ca', 'cy', 'el', 'eo', 'et', 'eu',
+          'fo', 'fur', 'fy', 'ga', 'gd', 'gl', 'he',
+          'hr', 'hu', 'hy', 'is', 'ka', 'ko', 'lt',
+          'lv', 'mk', 'mn', 'fa', 'br', 'la', 'sk',
+          'sl', 'sr', 'tr', 'uk', 'vi'
+        ],
+        default: 'en-au',
       },
     },
     required: ['text'],
@@ -30,23 +39,28 @@ export async function handleGrammarTool(
     text?: string;
     language?: string;
   },
-  ai: Ai
+  ai: Ai,
+  r2DictsBucket?: R2Bucket
 ): Promise<CallToolResult> {
   // Validate arguments
   if (!args.text) {
     throw new Error('Missing required argument: text');
   }
 
-  const language = (args.language || 'en-AU') as LanguageCode;
+  const language = (args.language || 'en-au') as LanguageCode;
 
   if (!isLanguageSupported(language)) {
     throw new Error(
-      `Unsupported language: ${language}. Supported languages: en-AU`
+      `Unsupported language: ${language}. Supported languages: en-au`
     );
   }
 
+  if (!r2DictsBucket) {
+    throw new Error('R2 dictionaries bucket not available');
+  }
+
   // First, run spell check to get spelling errors for context
-  const spellCheckResult = await checkSpelling(args.text, language);
+  const spellCheckResult = await checkSpelling(args.text, language, r2DictsBucket);
 
   // Run grammar check with spelling context
   const result = await checkGrammar(
