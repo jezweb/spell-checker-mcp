@@ -82,8 +82,8 @@ export async function checkGrammar(
   ai: Ai,
   language: LanguageCode = 'en-AU'
 ): Promise<GrammarCheckResult> {
-  // Use Llama 3.1 8B - good balance of speed and accuracy
-  const modelId = '@cf/meta/llama-3.1-8b-instruct';
+  // Use Llama 3.3 70B - Much larger model (70B vs 8B) for better accuracy
+  const modelId = '@cf/meta/llama-3.3-70b-instruct-fp8-fast';
 
   try {
     const response = (await ai.run(modelId as any, {

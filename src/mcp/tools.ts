@@ -1,10 +1,12 @@
 import type { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { analyzeToolDefinition } from '../tools/analyze';
 import { grammarToolDefinition } from '../tools/grammar';
+import { correctToolDefinition } from '../tools/correct';
 
 export const tools: Tool[] = [
   analyzeToolDefinition,
   grammarToolDefinition,
+  correctToolDefinition,
 ];
 
 export function getToolByName(name: string): Tool | undefined {

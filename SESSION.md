@@ -1,8 +1,8 @@
 # Session State - Spell Checker MCP API
 
-**Current Phase**: Phase 3 Complete
-**Current Stage**: Ready for Phase 4
-**Last Checkpoint**: c022939 (2025-11-13)
+**Current Phase**: Phase 4 Complete
+**Current Stage**: Ready for Phase 5
+**Last Checkpoint**: 41ecb22 (2025-11-13)
 **Planning Docs**: README.md (contains project specification)
 
 ---
@@ -69,7 +69,7 @@
 
 ## Phase 3: Grammar Mode ✅
 
-**Completed**: 2025-11-13 | **Checkpoint**: (pending commit)
+**Completed**: 2025-11-13 | **Checkpoint**: 41ecb22
 
 **Summary**: Implemented Workers AI (Llama 3.1 8B) grammar checking with AU English system prompts, error detection with suggestions, and comprehensive testing.
 
@@ -96,16 +96,37 @@
 
 ---
 
-## Phase 4: Auto-Correct Tool (Not Started) ⏸️
+## Phase 4: Auto-Correct Tool ✅
 
-**Spec**: Implement auto-correction with option to apply fixes automatically
+**Completed**: 2025-11-13 | **Checkpoint**: (pending commit)
 
-**Tasks**:
-- [ ] Create `spell_check_correct` tool
-- [ ] Build correction application logic
-- [ ] Handle conflict resolution (multiple suggestions)
-- [ ] Verify corrected text validity
-- [ ] Test with complex document corrections
+**Summary**: Implemented spell_check_correct MCP tool with three correction modes (spelling, grammar, both). Added correction library with position tracking and conflict detection. Upgraded grammar model to Llama 3.3 70B for better accuracy.
+
+**Deliverables**:
+- `spell_check_correct` MCP tool with 3 modes
+- Correction library (src/lib/correction.ts) with offset tracking
+- Spelling-only correction (works without AI, production-ready)
+- Grammar-only correction (AI-powered, best for identification)
+- Combined correction mode (spelling first, then grammar)
+- Upgraded grammar model from Llama 3.1 8B to Llama 3.3 70B
+
+**Verified**:
+- ✅ Spelling-only correction works perfectly
+- ✅ "recieve" → "receive" applied correctly
+- ✅ AU English preserved (organise, colours)
+- ✅ Position tracking handles text mutations
+- ✅ Change log with confidence ratings
+- ✅ TypeScript builds cleanly
+
+**MCP Tool Available**:
+- `spell_check_correct` - Auto-correction with multiple modes
+  - Input: text (required), language (optional), mode (spelling/grammar/both)
+  - Output: Original text, corrected text, detailed change log
+  - Modes: spelling (no AI), grammar (requires AI), both (default)
+
+**Known Limitation**:
+- Grammar correction positions from AI may be imprecise (inherent AI limitation)
+- Recommendation: Use spelling-only mode for automated corrections
 
 ---
 
@@ -124,38 +145,40 @@
 
 ## Current State Summary
 
-**Project Status**: Early development, Phase 3 complete
+**Project Status**: Early development, Phase 4 complete
 
 **What Works**:
 - Spell check analysis with AU English dictionary
-- Grammar checking with Workers AI (Llama 3.1 8B)
+- Grammar checking with Workers AI (Llama 3.3 70B)
+- Auto-correction with 3 modes (spelling/grammar/both)
 - Accurate position tracking (line/column)
 - Suggestion generation
 - HTTP JSON-RPC MCP transport
 - Dev server runs cleanly
 - TypeScript builds without errors
-- Two MCP tools: spell_check_analyze + spell_check_grammar
+- Three MCP tools: spell_check_analyze + spell_check_grammar + spell_check_correct
 
 **What's Next**:
-- Phase 4: Auto-correction tool
 - Phase 5: Large document handling via R2
 
 **Key Files**:
 - `src/index.ts` - Main Worker entry, HTTP transport, AI binding
 - `src/mcp/server.ts` - MCP request handler (updated for AI binding)
-- `src/mcp/tools.ts` - Tool definitions (2 tools)
+- `src/mcp/tools.ts` - Tool definitions (3 tools)
 - `src/lib/dictionary.ts` - Dictionary loader
 - `src/lib/spellcheck.ts` - nspell wrapper
-- `src/lib/grammar.ts` - Workers AI grammar checking
+- `src/lib/grammar.ts` - Workers AI grammar checking (Llama 3.3 70B)
+- `src/lib/correction.ts` - Correction application logic
 - `src/tools/analyze.ts` - spell_check_analyze tool
 - `src/tools/grammar.ts` - spell_check_grammar tool
+- `src/tools/correct.ts` - spell_check_correct tool
 - `wrangler.jsonc` - Cloudflare bindings configuration
 - `worker-configuration.d.ts` - Generated types (AI, R2, Analytics)
 
 **Known Issues**: None currently
 
 **Next Action**:
-When ready, start Phase 4 - Auto-Correction Tool by creating `/src/tools/correct.ts` for spell_check_correct MCP tool. Implement auto-correction logic that applies spelling and grammar suggestions automatically with conflict resolution.
+When ready, start Phase 5 - Storage & Large Documents by implementing R2 integration for handling documents > 100KB. Create document upload/storage handlers in `/src/lib/storage.ts` and presigned URL generation for large document processing.
 
 ---
 

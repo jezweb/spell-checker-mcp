@@ -36,7 +36,7 @@ app.get('/', (c) => {
       mcp: '/mcp',
       health: '/health',
     },
-    tools: ['spell_check_analyze', 'spell_check_grammar'],
+    tools: ['spell_check_analyze', 'spell_check_grammar', 'spell_check_correct'],
     usage: {
       example: {
         method: 'POST',

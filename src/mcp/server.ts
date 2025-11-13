@@ -8,6 +8,7 @@ import {
 } from '../utils/responses';
 import { handleAnalyzeTool } from '../tools/analyze';
 import { handleGrammarTool } from '../tools/grammar';
+import { handleCorrectTool } from '../tools/correct';
 
 export async function handleMCPRequest(
   request: MCPRequest,
@@ -65,6 +66,11 @@ export async function handleMCPRequest(
                 );
               }
               toolResult = await handleGrammarTool(args, ai);
+              break;
+
+            case 'spell_check_correct':
+              // Correction tool can work without AI (spelling-only mode)
+              toolResult = await handleCorrectTool(args, ai);
               break;
 
             default:
