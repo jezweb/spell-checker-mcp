@@ -23,5 +23,13 @@
   // Workers AI binding for grammar checking
   "ai": {
     "binding": "AI"
-  }
+  },
+  // Configure loaders for dictionary files
+  "rules": [
+    {
+      "type": "Text",
+      "globs": ["**/*.aff", "**/*.dic"],
+      "fallthrough": false
+    }
+  ]
 }

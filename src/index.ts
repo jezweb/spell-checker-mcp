@@ -1,101 +1,75 @@
 import { Hono } from 'hono';
-import { Server } from '@modelcontextprotocol/sdk/server/index.js';
-import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js';
-import {
-  CallToolRequestSchema,
-  ListToolsRequestSchema,
-  Tool,
-} from '@modelcontextprotocol/sdk/types.js';
+import { cors } from 'hono/cors';
+import type { MCPRequest } from './mcp/types';
+import { handleMCPRequest } from './mcp/server';
+import { createInvalidRequest, createParseError } from './utils/responses';
 
 type Env = Cloudflare.Env;
 
 const app = new Hono<{ Bindings: Env }>();
 
-// Health check endpoint
+// CORS middleware - allow all origins for MCP
+app.use('/*', cors({
+  origin: '*',
+  allowMethods: ['GET', 'POST', 'OPTIONS'],
+  allowHeaders: ['Content-Type', 'Authorization'],
+}));
+
+// Health check endpoint (public)
+app.get('/health', (c) => {
+  return c.json({
+    status: 'ok',
+    version: '1.0.0',
+    tools: 1,
+    description: 'Australian English spell checker MCP server',
+  });
+});
+
+// Root endpoint - server info (public)
 app.get('/', (c) => {
   return c.json({
     name: 'spell-checker-mcp-api',
     version: '1.0.0',
-    description: 'MCP server for Australian English spell checking',
+    description: 'MCP server for Australian English spell checking with AI grammar support',
+    transport: 'http',
     endpoints: {
       mcp: '/mcp',
-      health: '/',
+      health: '/health',
+    },
+    tools: ['spell_check_analyze'],
+    usage: {
+      example: {
+        method: 'POST',
+        url: '/mcp',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: {
+          jsonrpc: '2.0',
+          id: 1,
+          method: 'tools/list',
+        },
+      },
     },
   });
 });
 
-// MCP SSE endpoint
-app.get('/mcp', async (c) => {
-  const server = new Server(
-    {
-      name: 'spell-checker-mcp-api',
-      version: '1.0.0',
-    },
-    {
-      capabilities: {
-        tools: {},
-      },
-    }
-  );
+// MCP endpoint (POST only for JSON-RPC requests)
+app.post('/mcp', async (c) => {
+  try {
+    const body = await c.req.json() as MCPRequest;
 
-  // Define available tools
-  const tools: Tool[] = [
-    {
-      name: 'spell_check_analyze',
-      description:
-        'Analyze text for spelling errors using Australian English dictionary. Returns list of misspelled words with suggestions.',
-      inputSchema: {
-        type: 'object',
-        properties: {
-          text: {
-            type: 'string',
-            description: 'The text to check for spelling errors',
-          },
-          language: {
-            type: 'string',
-            description: 'Language code (default: en-AU)',
-            enum: ['en-AU'],
-            default: 'en-AU',
-          },
-        },
-        required: ['text'],
-      },
-    },
-  ];
-
-  // Handle list tools request
-  server.setRequestHandler(ListToolsRequestSchema, async () => ({
-    tools,
-  }));
-
-  // Handle tool call request
-  server.setRequestHandler(CallToolRequestSchema, async (request) => {
-    const { name, arguments: args } = request.params;
-
-    if (name === 'spell_check_analyze') {
-      // Placeholder response for Phase 1
-      return {
-        content: [
-          {
-            type: 'text',
-            text: JSON.stringify({
-              message: 'Spell check tool placeholder - dictionary integration coming in Phase 2',
-              text: args.text || '',
-              language: args.language || 'en-AU',
-            }, null, 2),
-          },
-        ],
-      };
+    // Validate JSON-RPC format
+    if (!body || body.jsonrpc !== '2.0' || !body.method) {
+      return c.json(createInvalidRequest(body?.id || 0));
     }
 
-    throw new Error(`Unknown tool: ${name}`);
-  });
-
-  // Create SSE transport
-  const transport = new SSEServerTransport('/mcp', c.req.raw);
-  await server.connect(transport);
-
-  return transport.response;
+    const response = await handleMCPRequest(body);
+    return c.json(response);
+  } catch (error) {
+    console.error('Failed to parse request:', error);
+    return c.json(createParseError());
+  }
 });
 
 export default app;
