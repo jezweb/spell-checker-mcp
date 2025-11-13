@@ -196,41 +196,6 @@ Restart VS Code after configuration.
 </details>
 
 <details>
-<summary><b>Roo Code</b></summary>
-
-### Project Configuration
-
-Create `.roo/mcp.json` in your project root:
-
-```json
-{
-  "mcpServers": {
-    "spell-checker": {
-      "url": "https://spellcheck.mcp.jezweb.ai/mcp",
-      "transport": "http"
-    }
-  }
-}
-```
-
-### Global Configuration
-
-Add to VS Code settings under `mcp_settings.json`:
-
-```json
-{
-  "mcpServers": {
-    "spell-checker": {
-      "command": "npx",
-      "args": ["-y", "spell-checker-mcp"]
-    }
-  }
-}
-```
-
-</details>
-
-<details>
 <summary><b>Zed Editor</b></summary>
 
 Add to `~/.config/zed/settings.json`:
