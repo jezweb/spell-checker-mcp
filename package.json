@@ -1,9 +1,17 @@
 {
   "name": "spell-checker-mcp-api",
   "version": "1.0.0",
-  "description": "MCP server for Australian English spell checking with AI grammar support",
+  "description": "MCP server for multi-language spell and grammar checking (53 languages with auto-detection and AI-powered grammar)",
   "main": "dist/index.js",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jezweb/spell-checker-mcp-api.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jezweb/spell-checker-mcp-api/issues"
+  },
+  "homepage": "https://github.com/jezweb/spell-checker-mcp-api#readme",
   "scripts": {
     "dev": "wrangler dev",
     "build": "tsc",

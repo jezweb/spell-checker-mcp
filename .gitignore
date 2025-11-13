@@ -40,3 +40,10 @@ yarn-error.log*
 
 # TypeScript
 *.tsbuildinfo
+
+# Personal artifacts (development only, not for public release)
+SESSION.md
+test-*.sh
+test-*.js
+test-*.ts
+dictionaries-upload/
