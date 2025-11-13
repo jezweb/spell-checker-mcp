@@ -36,7 +36,7 @@ app.get('/', (c) => {
       mcp: '/mcp',
       health: '/health',
     },
-    tools: ['spell_check_analyze'],
+    tools: ['spell_check_analyze', 'spell_check_grammar'],
     usage: {
       example: {
         method: 'POST',
@@ -64,7 +64,8 @@ app.post('/mcp', async (c) => {
       return c.json(createInvalidRequest(body?.id || 0));
     }
 
-    const response = await handleMCPRequest(body);
+    // Pass AI binding to MCP handler
+    const response = await handleMCPRequest(body, c.env.AI);
     return c.json(response);
   } catch (error) {
     console.error('Failed to parse request:', error);

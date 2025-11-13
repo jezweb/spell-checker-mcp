@@ -6,11 +6,12 @@ import {
   createInvalidParams,
   createInternalError,
 } from '../utils/responses';
-import { checkSpelling } from '../lib/spellcheck';
-import { isLanguageSupported, type LanguageCode } from '../lib/dictionary';
+import { handleAnalyzeTool } from '../tools/analyze';
+import { handleGrammarTool } from '../tools/grammar';
 
 export async function handleMCPRequest(
-  request: MCPRequest
+  request: MCPRequest,
+  ai?: Ai
 ): Promise<MCPResponse> {
   const { id, method, params } = request;
 
@@ -49,51 +50,22 @@ export async function handleMCPRequest(
 
         // Dispatch to tool handlers
         try {
-          let result: any;
+          let toolResult: any;
 
           switch (toolName) {
-            case 'spell_check_analyze': {
-              // Validate arguments
-              if (!args.text) {
-                return createInvalidParams(id, 'Missing required argument: text');
-              }
+            case 'spell_check_analyze':
+              toolResult = await handleAnalyzeTool(args);
+              break;
 
-              const language = (args.language || 'en-AU') as LanguageCode;
-
-              if (!isLanguageSupported(language)) {
-                return createInvalidParams(
+            case 'spell_check_grammar':
+              if (!ai) {
+                return createInternalError(
                   id,
-                  `Unsupported language: ${language}. Supported languages: en-AU`
+                  'AI binding not available for grammar checking'
                 );
               }
-
-              // Run spell check
-              const spellCheckResult = await checkSpelling(args.text, language);
-
-              // Format result for MCP
-              const summary = `Checked ${spellCheckResult.wordCount} words. Found ${spellCheckResult.errorCount} spelling error${spellCheckResult.errorCount === 1 ? '' : 's'}.`;
-
-              let detailsText = '';
-              if (spellCheckResult.errors.length > 0) {
-                detailsText = '\n\nErrors:\n';
-                spellCheckResult.errors.forEach((error, index) => {
-                  const suggestionsText =
-                    error.suggestions.length > 0
-                      ? ` → Suggestions: ${error.suggestions.join(', ')}`
-                      : ' → No suggestions available';
-
-                  detailsText += `${index + 1}. "${error.word}" at line ${error.line}, column ${error.column}${suggestionsText}\n`;
-                });
-              } else {
-                detailsText = '\n\nNo spelling errors found! ✓';
-              }
-
-              result = {
-                summary: summary + detailsText,
-                data: spellCheckResult,
-              };
+              toolResult = await handleGrammarTool(args, ai);
               break;
-            }
 
             default:
               return createInternalError(
@@ -102,14 +74,7 @@ export async function handleMCPRequest(
               );
           }
 
-          return createMCPResponse(id, {
-            content: [
-              {
-                type: 'text',
-                text: JSON.stringify(result, null, 2),
-              },
-            ],
-          });
+          return createMCPResponse(id, toolResult);
         } catch (error: any) {
           console.error(`Tool execution error (${toolName}):`, error);
           return createInternalError(id, error.message);

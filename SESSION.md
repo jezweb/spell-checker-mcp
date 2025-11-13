@@ -1,8 +1,8 @@
 # Session State - Spell Checker MCP API
 
-**Current Phase**: Phase 2 Complete
-**Current Stage**: Ready for Phase 3
-**Last Checkpoint**: c0a83f4 (2025-11-13, 16:14)
+**Current Phase**: Phase 3 Complete
+**Current Stage**: Ready for Phase 4
+**Last Checkpoint**: c022939 (2025-11-13)
 **Planning Docs**: README.md (contains project specification)
 
 ---
@@ -67,16 +67,32 @@
 
 ---
 
-## Phase 3: Grammar Mode (Not Started) ⏸️
+## Phase 3: Grammar Mode ✅
 
-**Spec**: Add Workers AI GPT-OSS-120B integration for grammar and style checking
+**Completed**: 2025-11-13 | **Checkpoint**: (pending commit)
 
-**Tasks**:
-- [ ] Create grammar checking tool (`spell_check_grammar`)
-- [ ] Implement Workers AI integration
-- [ ] Design system prompts for AU English grammar
-- [ ] Combine spell + grammar results
-- [ ] Test with AU English grammar edge cases
+**Summary**: Implemented Workers AI (Llama 3.1 8B) grammar checking with AU English system prompts, error detection with suggestions, and comprehensive testing.
+
+**Deliverables**:
+- `spell_check_grammar` MCP tool
+- Workers AI integration in src/lib/grammar.ts
+- AU English grammar system prompt with conventions
+- Grammar error detection (6 categories: GRAMMAR, PUNCTUATION, STYLE, TYPOGRAPHY)
+- JSON-RPC response formatting with context and suggestions
+- Updated MCP server to pass AI binding
+
+**Verified**:
+- ✅ Grammar errors detected correctly (subject-verb agreement, its/it's, there/their)
+- ✅ Australian English spellings NOT flagged as errors (colour, organise, theatre)
+- ✅ Error context and suggestions provided
+- ✅ Model: @cf/meta/llama-3.1-8B-instruct working correctly
+- ✅ Both tools (spell_check_analyze + spell_check_grammar) working together
+
+**MCP Tool Available**:
+- `spell_check_grammar` - AI-powered grammar and style checking
+  - Input: text (required), language (optional, default: en-AU)
+  - Output: Summary + detailed errors with context, suggestions, rule IDs
+  - Model: Llama 3.1 8B via Workers AI (remote binding)
 
 ---
 
@@ -108,34 +124,38 @@
 
 ## Current State Summary
 
-**Project Status**: Early development, Phase 2 complete
+**Project Status**: Early development, Phase 3 complete
 
 **What Works**:
 - Spell check analysis with AU English dictionary
+- Grammar checking with Workers AI (Llama 3.1 8B)
 - Accurate position tracking (line/column)
 - Suggestion generation
 - HTTP JSON-RPC MCP transport
 - Dev server runs cleanly
 - TypeScript builds without errors
+- Two MCP tools: spell_check_analyze + spell_check_grammar
 
 **What's Next**:
-- Phase 3: Grammar checking with Workers AI
 - Phase 4: Auto-correction tool
 - Phase 5: Large document handling via R2
 
 **Key Files**:
-- `src/index.ts` - Main Worker entry, HTTP transport
-- `src/mcp/server.ts` - MCP request handler
-- `src/mcp/tools.ts` - Tool definitions
+- `src/index.ts` - Main Worker entry, HTTP transport, AI binding
+- `src/mcp/server.ts` - MCP request handler (updated for AI binding)
+- `src/mcp/tools.ts` - Tool definitions (2 tools)
 - `src/lib/dictionary.ts` - Dictionary loader
 - `src/lib/spellcheck.ts` - nspell wrapper
+- `src/lib/grammar.ts` - Workers AI grammar checking
 - `src/tools/analyze.ts` - spell_check_analyze tool
+- `src/tools/grammar.ts` - spell_check_grammar tool
 - `wrangler.jsonc` - Cloudflare bindings configuration
+- `worker-configuration.d.ts` - Generated types (AI, R2, Analytics)
 
 **Known Issues**: None currently
 
 **Next Action**:
-When ready, start Phase 3 - Grammar Mode by implementing Workers AI integration for grammar and style checking. Create `/src/tools/grammar.ts` and update `/src/lib/` with grammar checking module.
+When ready, start Phase 4 - Auto-Correction Tool by creating `/src/tools/correct.ts` for spell_check_correct MCP tool. Implement auto-correction logic that applies spelling and grammar suggestions automatically with conflict resolution.
 
 ---
 
