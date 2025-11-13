@@ -1,8 +1,8 @@
 # Session State - Spell Checker MCP API
 
-**Current Phase**: Phase 4 Complete
-**Current Stage**: Ready for Phase 5
-**Last Checkpoint**: f103a88 (2025-11-13)
+**Current Phase**: Phase 5 Complete
+**Current Stage**: Deployed to production
+**Last Checkpoint**: aa10253 (2025-11-13)
 **Planning Docs**: README.md (contains project specification)
 
 ---
@@ -132,7 +132,7 @@
 
 ## Phase 4.5: Spelling Context Integration ✅
 
-**Completed**: 2025-11-13 | **Checkpoint**: (pending)
+**Completed**: 2025-11-13 | **Checkpoint**: aa10253
 
 **Summary**: Enhanced grammar checking with spelling context integration and upgraded to DeepSeek R1 32B. Grammar checker now automatically receives spelling errors as context, preventing duplicate error flagging and improving AI accuracy.
 
@@ -164,56 +164,76 @@ This prevents AI from wasting tokens on spelling and improves grammar detection 
 
 ---
 
-## Phase 5: Storage & Large Documents (Not Started) ⏸️
+## Phase 5: R2 Document Storage ✅
 
-**Spec**: R2 integration for handling documents > 100KB
+**Completed**: 2025-11-13 | **Checkpoint**: (pending)
 
-**Tasks**:
-- [ ] Implement R2 document storage handler
-- [ ] Create chunking strategy for large files
-- [ ] Build result aggregation logic
-- [ ] Add progress tracking for long operations
-- [ ] Test with large document uploads
+**Summary**: Implemented R2 storage for all corrected documents with 30-day auto-deletion. Every spell_check_correct call now stores results to R2 and returns public URL. Deployed to production.
+
+**Deliverables**:
+- R2 storage library with UUID-based file naming (secure, non-guessable)
+- Always-to-R2 strategy (all corrections stored, regardless of size)
+- R2 bucket created: `spell-checker-documents`
+- 30-day lifecycle policy configured
+- Public URL generation (custom domain: `spellcheck.files.jezweb.ai` - pending configuration)
+- Updated spell_check_correct tool to upload and return R2 info
+- Deployed to production: https://spell-checker-mcp-api.webfonts.workers.dev
+
+**Verified**:
+- ✅ R2 bucket created and lifecycle policy set
+- ✅ Corrected text uploaded to R2 successfully
+- ✅ File naming secure (UUID-based, non-guessable)
+- ✅ Response includes R2 URL, key, size, expiry date
+- ✅ Production deployment successful
+- ✅ Live test passed (spelling correction + R2 storage working)
 
 ---
 
 ## Current State Summary
 
-**Project Status**: Early development, Phase 4 complete
+**Project Status**: Production-ready, Phase 5 complete
 
 **What Works**:
 - Spell check analysis with AU English dictionary
 - Grammar checking with Workers AI (DeepSeek R1 32B with spelling context)
 - Auto-correction with 3 modes (spelling/grammar/both)
+- R2 storage for all corrected documents (30-day auto-delete)
 - Accurate position tracking (line/column)
 - Suggestion generation
 - Spelling context integration (prevents duplicate error flagging)
 - HTTP JSON-RPC MCP transport
-- Dev server runs cleanly
 - TypeScript builds without errors
-- Three MCP tools: spell_check_analyze + spell_check_grammar + spell_check_correct
+- Three MCP tools deployed: spell_check_analyze + spell_check_grammar + spell_check_correct
+- Live at: https://spell-checker-mcp-api.webfonts.workers.dev
 
 **What's Next**:
-- Phase 5: Large document handling via R2
+- Phase 6 (future): URL fetching support (spell check content from external URLs)
+- Phase 7 (future): Document conversion (HTML → text, PDF → text)
+- Phase 8 (future): Chunking for very large documents (>1MB)
 
 **Key Files**:
-- `src/index.ts` - Main Worker entry, HTTP transport, AI binding
-- `src/mcp/server.ts` - MCP request handler (updated for AI binding)
+- `src/index.ts` - Main Worker entry, HTTP transport, AI + R2 bindings
+- `src/mcp/server.ts` - MCP request handler (AI + R2 bindings)
 - `src/mcp/tools.ts` - Tool definitions (3 tools)
 - `src/lib/dictionary.ts` - Dictionary loader
 - `src/lib/spellcheck.ts` - nspell wrapper
 - `src/lib/grammar.ts` - Workers AI grammar checking (DeepSeek R1 32B + spelling context)
-- `src/lib/correction.ts` - Correction application logic
+- `src/lib/correction.ts` - Correction application logic (with R2 types)
+- `src/lib/storage.ts` - R2 storage library (NEW)
 - `src/tools/analyze.ts` - spell_check_analyze tool
 - `src/tools/grammar.ts` - spell_check_grammar tool (with auto spell-check)
-- `src/tools/correct.ts` - spell_check_correct tool (passes spelling context)
+- `src/tools/correct.ts` - spell_check_correct tool (R2 upload integration)
 - `wrangler.jsonc` - Cloudflare bindings configuration
 - `worker-configuration.d.ts` - Generated types (AI, R2, Analytics)
 
 **Known Issues**: None currently
 
 **Next Action**:
-When ready, start Phase 5 - Storage & Large Documents by implementing R2 integration for handling documents > 100KB. Create document upload/storage handlers in `/src/lib/storage.ts` and presigned URL generation for large document processing.
+Configure custom domain for R2 public access:
+1. Cloudflare Dashboard → R2 → spell-checker-documents → Settings
+2. Add custom domain: `spellcheck.files.jezweb.ai`
+3. Add CNAME record as instructed
+4. (Optional) Add worker custom domain: `spellcheck.mcp.jezweb.ai`
 
 ---
 

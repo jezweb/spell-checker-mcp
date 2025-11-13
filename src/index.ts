@@ -64,8 +64,8 @@ app.post('/mcp', async (c) => {
       return c.json(createInvalidRequest(body?.id || 0));
     }
 
-    // Pass AI binding to MCP handler
-    const response = await handleMCPRequest(body, c.env.AI);
+    // Pass AI and R2 bindings to MCP handler
+    const response = await handleMCPRequest(body, c.env.AI, c.env.SPELL_CHECK_DOCS);
     return c.json(response);
   } catch (error) {
     console.error('Failed to parse request:', error);

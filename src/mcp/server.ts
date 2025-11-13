@@ -12,7 +12,8 @@ import { handleCorrectTool } from '../tools/correct';
 
 export async function handleMCPRequest(
   request: MCPRequest,
-  ai?: Ai
+  ai?: Ai,
+  r2Bucket?: R2Bucket
 ): Promise<MCPResponse> {
   const { id, method, params } = request;
 
@@ -70,7 +71,7 @@ export async function handleMCPRequest(
 
             case 'spell_check_correct':
               // Correction tool can work without AI (spelling-only mode)
-              toolResult = await handleCorrectTool(args, ai);
+              toolResult = await handleCorrectTool(args, ai, r2Bucket);
               break;
 
             default:

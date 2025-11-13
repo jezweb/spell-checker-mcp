@@ -1,5 +1,6 @@
 import type { SpellingError, SpellCheckResult } from './spellcheck';
 import type { GrammarError, GrammarCheckResult } from './grammar';
+import type { R2StorageInfo } from './storage';
 
 export interface CorrectionChange {
   type: 'spelling' | 'grammar';
@@ -20,6 +21,7 @@ export interface CorrectionResult {
   changeCount: number;
   conflictsResolved: number;
   strategy: 'spelling-only' | 'grammar-only' | 'both' | 'first-suggestion';
+  r2?: R2StorageInfo; // Optional R2 storage information
 }
 
 export interface CorrectionOptions {

@@ -5,8 +5,10 @@ import {
   applySpellingCorrections,
   applyGrammarCorrections,
   type CorrectionOptions,
+  type CorrectionResult,
 } from '../lib/correction';
 import { isLanguageSupported, type LanguageCode } from '../lib/dictionary';
+import { uploadToR2 } from '../lib/storage';
 
 export const correctToolDefinition: Tool = {
   name: 'spell_check_correct',
@@ -43,7 +45,8 @@ export async function handleCorrectTool(
     language?: string;
     mode?: 'spelling' | 'grammar' | 'both';
   },
-  ai?: Ai
+  ai?: Ai,
+  r2Bucket?: R2Bucket
 ): Promise<CallToolResult> {
   // Validate arguments
   if (!args.text) {
@@ -69,7 +72,7 @@ export async function handleCorrectTool(
     strategy: 'first-suggestion',
   };
 
-  let result;
+  let result: CorrectionResult;
 
   try {
     if (mode === 'spelling') {
@@ -138,6 +141,17 @@ export async function handleCorrectTool(
 
     }
 
+    // Upload corrected text to R2 (always store, regardless of size)
+    if (r2Bucket) {
+      try {
+        const r2Info = await uploadToR2(r2Bucket, result.correctedText);
+        result.r2 = r2Info;
+      } catch (r2Error) {
+        console.error('Failed to upload to R2:', r2Error);
+        // Continue without R2 storage - don't fail the whole correction
+      }
+    }
+
     // Format result for MCP
     const summary = `Auto-correction complete (${mode} mode). Applied ${result.changeCount} change${result.changeCount === 1 ? '' : 's'}.`;
 
@@ -161,6 +175,14 @@ export async function handleCorrectTool(
     }
 
     detailsText += `\n\n--- CORRECTED TEXT ---\n${result.correctedText}\n--- END ---`;
+
+    // Add R2 storage info if available
+    if (result.r2) {
+      detailsText += `\n\n📦 Corrected text stored in R2:`;
+      detailsText += `\n   URL: ${result.r2.url}`;
+      detailsText += `\n   Size: ${result.r2.size} bytes`;
+      detailsText += `\n   Expires: ${result.r2.expiresAt}`;
+    }
 
     return {
       content: [

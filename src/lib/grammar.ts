@@ -129,15 +129,39 @@ export async function checkGrammar(
       max_tokens: 2048,
     })) as any;
 
-    // Extract response text
-    const aiResponse =
-      typeof response === 'object' && 'response' in response
-        ? (response as { response: string }).response
-        : '';
+    // Extract response text - DeepSeek R1 returns array of objects
+    let aiResponse = '';
+
+    if (Array.isArray(response)) {
+      // DeepSeek R1 format: array with reasoning + message objects
+      const messageObj = response.find((item: any) => item.type === 'message');
+      if (messageObj && messageObj.content && Array.isArray(messageObj.content)) {
+        const textContent = messageObj.content.find((c: any) => c.type === 'text');
+        aiResponse = textContent?.text || '';
+      }
+    } else if (typeof response === 'object' && 'response' in response) {
+      // Legacy format: simple object with response property
+      aiResponse = (response as { response: string }).response;
+    } else if (typeof response === 'string') {
+      // Direct string response
+      aiResponse = response;
+    }
 
     // Parse JSON response
     let errors: GrammarError[] = [];
     try {
+      if (!aiResponse) {
+        console.error('No text content found in AI response');
+        console.error('Full response:', JSON.stringify(response, null, 2));
+        return {
+          text,
+          language,
+          errors: [],
+          errorCount: 0,
+          aiModel: modelId,
+        };
+      }
+
       // Try to extract JSON from response (in case AI adds extra text)
       const jsonMatch = aiResponse.match(/\[[\s\S]*\]/);
       if (jsonMatch) {
