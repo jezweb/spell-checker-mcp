@@ -29,6 +29,22 @@
   ],
   "author": "Jezweb <jeremy@jezweb.net>",
   "license": "MIT",
+  "cloudflare": {
+    "bindings": {
+      "SPELL_CHECK_DICTS": {
+        "description": "R2 bucket for dictionary storage (53 languages, auto-populated). Stores .aff and .dic files for spell checking. Auto-created during deployment."
+      },
+      "SPELL_CHECK_DOCS": {
+        "description": "R2 bucket for corrected document storage with 30-day lifecycle policy. Auto-created during deployment."
+      },
+      "AI": {
+        "description": "Workers AI binding for grammar checking. Uses DeepSeek R1 Distill Qwen 32B model. Auto-configured during deployment."
+      },
+      "MCP_METRICS": {
+        "description": "Analytics Engine binding for usage tracking and metrics. Optional - auto-created during deployment."
+      }
+    }
+  },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.21.1",
     "dictionary-bg": "^2.0.0",
