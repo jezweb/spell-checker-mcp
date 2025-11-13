@@ -19,10 +19,16 @@ app.use('/*', cors({
 app.get('/health', (c) => {
   return c.json({
     status: 'ok',
-    version: '1.0.0',
+    version: '1.1.0',
     tools: 3,
-    languages: 56,
-    description: 'Multi-language spell checker MCP server (56+ languages with auto-detection)',
+    languages: 53,
+    description: 'Multi-language spell and grammar checker MCP server (53 languages with auto-detection)',
+    features: {
+      spelling: '53 languages',
+      grammar: '53 languages (AI-powered)',
+      autoCorrect: '3 modes (spelling/grammar/both)',
+      languageDetection: 'Automatic with franc-min'
+    }
   });
 });
 
