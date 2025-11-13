@@ -8,7 +8,7 @@
 
 MCP server for real-time spell checking and grammar correction in AI coding assistants. Supports 53 languages with automatic detection, powered by Cloudflare Workers, nspell dictionaries, and Workers AI.
 
-**Live Demo:** https://spell-checker-mcp-api.webfonts.workers.dev
+**Live Demo:** https://spellcheck.mcp.jezweb.ai
 
 ---
 
@@ -51,7 +51,7 @@ Connect to the public demo instance (rate-limited):
 
 ```bash
 # Claude Code CLI
-claude mcp add spell-checker --transport http https://spell-checker-mcp-api.webfonts.workers.dev/mcp
+claude mcp add spell-checker --transport http https://spellcheck.mcp.jezweb.ai/mcp
 ```
 
 ### Option 3: Run Locally
@@ -404,7 +404,7 @@ Auto-correct spelling and grammar errors.
   ],
   "summary": "Applied 3 corrections",
   "r2": {
-    "url": "https://spell-checker-documents.your-account.r2.dev/abc123.txt",
+    "url": "https://spellcheck.files.jezweb.ai/abc123.txt",
     "key": "abc123.txt",
     "size": 52,
     "expiresAt": "2025-12-13T00:00:00Z"
